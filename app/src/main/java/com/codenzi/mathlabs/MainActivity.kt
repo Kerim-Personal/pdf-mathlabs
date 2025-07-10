@@ -1,25 +1,25 @@
-package com.codenzi.pdf
-
+package com.codenzi.mathlabs
+import androidx.core.view.WindowInsetsCompat
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
-import androidx.recyclerview.widget.LinearLayoutManager // <-- EKLENEN SATIR
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.updateLayoutParams
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import java.util.Calendar
@@ -82,23 +82,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            window.insetsController?.let {
-                it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        }
+        // *** DEĞİŞİKLİK BAŞLANGICI ***
+        // 1. Modern tam ekran yöntemini etkinleştir
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val toolbar: MaterialToolbar = findViewById(R.id.topToolbar)
         setSupportActionBar(toolbar)
         supportActionBar?.title = getGreetingMessage(this)
+
+        // 2. Toolbar'ın bildirim çubuğunun altına girmemesi için padding ekle
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar) { view, insets ->
+            val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = systemBarInsets.top
+            }
+            insets
+        }
+        // *** DEĞİŞİKLİK SONU ***
 
         recyclerViewCourses = findViewById(R.id.recyclerViewCourses)
         setupRecyclerView()
@@ -206,6 +206,7 @@ class MainActivity : AppCompatActivity() {
     private fun loadCourses() {
         fullCourseList.clear()
 
+        // ... loadCourses içeriği aynı kalır ...
         fullCourseList.add(Course(getString(R.string.course_calculus), listOf(
             getString(R.string.topic_calculus_limit), getString(R.string.topic_calculus_derivative_rules), getString(R.string.topic_calculus_derivative_apps),
             getString(R.string.topic_calculus_mean_value), getString(R.string.topic_calculus_indefinite_integral), getString(R.string.topic_calculus_definite_integral),
@@ -279,6 +280,7 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.topic_functional_normed_spaces), getString(R.string.topic_functional_hilbert_spaces), getString(R.string.topic_functional_linear_operators),
             getString(R.string.topic_functional_spectral_theory), getString(R.string.topic_functional_weak_topologies), getString(R.string.topic_functional_applications)
         )))
+
 
         courseList.clear()
         courseList.addAll(fullCourseList)

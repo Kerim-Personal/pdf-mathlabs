@@ -1,14 +1,15 @@
-package com.codenzi.pdf
+package com.codenzi.mathlabs
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 
 class LanguageSelectionActivity : AppCompatActivity() {
 
@@ -17,28 +18,29 @@ class LanguageSelectionActivity : AppCompatActivity() {
     }
 
     private fun applyThemeAndColor() {
-        // Merkezi tema yöneticisinden doğru temayı al ve uygula
         setTheme(ThemeManager.getThemeResId(this))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        applyThemeAndColor() // Bu çağrı super.onCreate'den önce olmalı
+        applyThemeAndColor()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_language_selection)
 
-        // Durum çubuğunu gizleme
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            window.insetsController?.let {
-                it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
+        // Modern tam ekran yöntemini etkinleştir
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // İçeriğin sistem çubukları altına girmemesi için ana layout'a padding ver
+        val rootView = findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { view, insets ->
+            // Düzeltilmiş satır aşağıda
+            val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(
+                left = systemBarInsets.left,
+                top = systemBarInsets.top,
+                right = systemBarInsets.right,
+                bottom = systemBarInsets.bottom
+            )
+            insets
         }
 
         val layoutTurkish: LinearLayout = findViewById(R.id.layoutTurkish)
@@ -58,11 +60,11 @@ class LanguageSelectionActivity : AppCompatActivity() {
     private fun setLanguageAndProceed(languageCode: String) {
         LocaleHelper.persist(this, languageCode)
 
-        val intent: Intent
-        if (SharedPreferencesManager.getUserName(this) == null) {
-            intent = Intent(this, NameEntryActivity::class.java)
+        // 'Assignment' uyarısı için düzeltilmiş, daha kısa kod
+        val intent = if (SharedPreferencesManager.getUserName(this) == null) {
+            Intent(this, NameEntryActivity::class.java)
         } else {
-            intent = Intent(this, MainActivity::class.java)
+            Intent(this, MainActivity::class.java)
         }
 
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

@@ -1,4 +1,4 @@
-package com.codenzi.pdf
+package com.codenzi.mathlabs
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

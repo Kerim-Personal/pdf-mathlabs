@@ -1,4 +1,4 @@
-package com.codenzi.pdf
+package com.codenzi.mathlabs
 
 import android.content.Intent
 import android.os.*

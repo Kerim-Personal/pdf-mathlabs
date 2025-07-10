@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.codenzi.pdf">
+    package="com.codenzi.mathlabs">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="com.codenzi.pdf.PdfApplication"
+        android:name="com.codenzi.mathlabs.PdfApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,15 +15,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pdf"
         android:largeHeap="true"> <activity
-        android:name="com.codenzi.pdf.NameEntryActivity"
+        android:name="com.codenzi.mathlabs.NameEntryActivity"
         android:exported="false"
         android:theme="@style/Theme.Pdf" />
         <activity
-            android:name="com.codenzi.pdf.SettingsActivity"
+            android:name="com.codenzi.mathlabs.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf" />
         <activity
-            android:name="com.codenzi.pdf.SplashActivity"
+            android:name="com.codenzi.mathlabs.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Pdf.SplashActivity">
             <intent-filter>
@@ -32,15 +32,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.codenzi.pdf.LanguageSelectionActivity"
+            android:name="com.codenzi.mathlabs.LanguageSelectionActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf" />
         <activity
-            android:name="com.codenzi.pdf.PdfViewActivity"
+            android:name="com.codenzi.mathlabs.PdfViewActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf.PdfView" />
         <activity
-            android:name="com.codenzi.pdf.MainActivity"
+            android:name="com.codenzi.mathlabs.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf" />
 

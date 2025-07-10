@@ -1,4 +1,4 @@
-package com.codenzi.pdf // Kendi paket adınla eşleştiğinden emin ol
+package com.codenzi.mathlabs // Kendi paket adınla eşleştiğinden emin ol
 
 data class Course(
     val title: String,       // Dersin başlığı (örneğin, "Kalkülüs I")

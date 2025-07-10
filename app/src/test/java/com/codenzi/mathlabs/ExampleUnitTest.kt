@@ -1,4 +1,4 @@
-package com.codenzi.pdf
+package com.codenzi.mathlabs
 
 import org.junit.Test
 

@@ -1,4 +1,4 @@
-package com.codenzi.pdf.ui.theme
+package com.codenzi.mathlabs.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

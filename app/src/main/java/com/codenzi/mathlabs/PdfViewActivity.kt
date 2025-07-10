@@ -1,10 +1,13 @@
-package com.codenzi.pdf
+package com.codenzi.mathlabs
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -15,33 +18,31 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.toColorInt
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat // Hata için eklenen import
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.github.barteksc.pdfviewer.PDFView
 import com.github.barteksc.pdfviewer.listener.OnErrorListener
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
 import com.github.barteksc.pdfviewer.listener.OnPageErrorListener
 import com.google.ai.client.generativeai.GenerativeModel
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch // catch operatörünü import et
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import android.content.res.ColorStateList
-import androidx.core.graphics.toColorInt
-import android.graphics.Color
-import androidx.constraintlayout.widget.ConstraintLayout
-import com.google.android.material.appbar.MaterialToolbar
-import java.io.IOException
 import java.io.FileNotFoundException
-import androidx.appcompat.app.AppCompatDelegate
-import android.view.WindowInsets
-import android.view.WindowInsetsController
-import android.os.Build
+import java.io.IOException
 
 class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorListener, OnPageErrorListener {
 
@@ -50,31 +51,22 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
     private lateinit var fabAiChat: FloatingActionButton
     private lateinit var fabReadingMode: FloatingActionButton
     private lateinit var eyeComfortOverlay: View
-    private lateinit var rootLayout: ConstraintLayout
     private lateinit var pdfToolbar: MaterialToolbar
 
     // Drawing related views and state
     private lateinit var drawingView: DrawingView
     private lateinit var fabToggleDrawing: FloatingActionButton
     private lateinit var fabEraser: FloatingActionButton
-
-    // --- DÜZELTME BAŞLANGICI ---
-    // Değişkenler doğru layout elemanlarına işaret edecek şekilde güncellendi.
-    private lateinit var drawingOptionsPanel: LinearLayout // Eskiden MaterialCardView idi.
-    // --- DÜZELTME BİTİŞİ ---
-
+    private lateinit var drawingOptionsPanel: LinearLayout
     private lateinit var colorOptions: LinearLayout
     private lateinit var sizeOptions: LinearLayout
     private lateinit var clearAllButtonContainer: LinearLayout
-
     private lateinit var btnColorRed: ImageButton
     private lateinit var btnColorBlue: ImageButton
     private lateinit var btnColorBlack: ImageButton
-
     private lateinit var btnSizeSmall: ImageButton
     private lateinit var btnSizeMedium: ImageButton
     private lateinit var btnSizeLarge: ImageButton
-
     private lateinit var fabClearAll: FloatingActionButton
 
     private var isDrawingActive: Boolean = false
@@ -135,22 +127,17 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         setContentView(R.layout.activity_pdf_view)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            window.insetsController?.let {
-                it.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                it.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        rootLayout = findViewById(R.id.root_layout_pdf_view)
         pdfToolbar = findViewById(R.id.pdfToolbar)
+
+        ViewCompat.setOnApplyWindowInsetsListener(pdfToolbar) { view, insets ->
+            val systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()) // Düzeltilmiş satır
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = systemBarInsets.top
+            }
+            insets
+        }
 
         setSupportActionBar(pdfToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -165,28 +152,19 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         fabAiChat = findViewById(R.id.fab_ai_chat)
         fabReadingMode = findViewById(R.id.fab_reading_mode)
         eyeComfortOverlay = findViewById(R.id.eyeComfortOverlay)
-
         drawingView = findViewById(R.id.drawingView)
         fabToggleDrawing = findViewById(R.id.fab_toggle_drawing)
         fabEraser = findViewById(R.id.fab_eraser)
-
-        // --- DÜZELTME BAŞLANGICI ---
-        // Değişkenler doğru layout ID'lerine atandı.
         drawingOptionsPanel = findViewById(R.id.drawingOptionsPanel)
-        // --- DÜZELTME BİTİŞİ ---
-
         colorOptions = findViewById(R.id.colorOptions)
         sizeOptions = findViewById(R.id.sizeOptions)
         clearAllButtonContainer = findViewById(R.id.clearAllButtonContainer)
-
         btnColorRed = findViewById(R.id.btn_color_red)
         btnColorBlue = findViewById(R.id.btn_color_blue)
         btnColorBlack = findViewById(R.id.btn_color_black)
-
         btnSizeSmall = findViewById(R.id.btn_size_small)
         btnSizeMedium = findViewById(R.id.btn_size_medium)
         btnSizeLarge = findViewById(R.id.btn_size_large)
-
         fabClearAll = findViewById(R.id.fab_clear_all)
 
         if (pdfAssetName != null) {
@@ -202,10 +180,8 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
                 showSnackbar(getString(R.string.ai_assistant_api_key_not_configured))
                 return@setOnClickListener
             }
-
             val isFirstCall = SharedPreferencesManager.getIsFirstGeminiApiCall(this)
             val currentTime = System.currentTimeMillis()
-
             showAiChatDialog()
             if (isFirstCall) {
                 SharedPreferencesManager.setIsFirstGeminiApiCall(this, false)
@@ -240,10 +216,8 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         setupDrawingOptions()
     }
 
-    // ONDESTROY METODU GÜNCELLENDİ
     override fun onDestroy() {
         super.onDestroy()
-        // UIFeedbackHelper.release() satırı buradan kaldırıldı.
     }
 
     private fun setupDrawingOptions() {
@@ -437,22 +411,18 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
     }
 
     private fun setDrawingButtonState(active: Boolean) {
-        // Renkleri doğrudan tanımlıyoruz: Aktif için Siyah, Pasif için Beyaz.
         val activeColor = ColorStateList.valueOf(Color.BLACK)
         val inactiveColor = ColorStateList.valueOf(Color.WHITE)
 
         if (active) {
             if (drawingView.drawingMode == DrawingView.DrawingMode.PEN) {
-                // Kalem modu aktif: Kalem ikonu siyah, silgi ikonu beyaz.
                 fabToggleDrawing.imageTintList = activeColor
                 fabEraser.imageTintList = inactiveColor
             } else if (drawingView.drawingMode == DrawingView.DrawingMode.ERASER) {
-                // Silgi modu aktif: Kalem ikonu beyaz, silgi ikonu siyah.
                 fabToggleDrawing.imageTintList = inactiveColor
                 fabEraser.imageTintList = activeColor
             }
         } else {
-            // Hiçbir mod aktif değil: Her iki ikon da beyaz.
             fabToggleDrawing.imageTintList = inactiveColor
             fabEraser.imageTintList = inactiveColor
         }
@@ -479,8 +449,7 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
             Log.e("PdfViewError", "PDF okuma/yükleme hatası: $assetName - ${e.localizedMessage}")
             showSnackbar(getString(R.string.pdf_load_failed_with_error, e.localizedMessage ?: "Dosya okuma hatası"))
             finish()
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
             progressBar.visibility = View.GONE
             Log.e("PdfViewError", "PDF yüklenirken genel hata: ${e.localizedMessage}", e)
             showSnackbar(getString(R.string.pdf_load_failed_with_error, e.localizedMessage ?: "Bilinmeyen hata"))
@@ -531,7 +500,6 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
                                     editTextQuestion.isEnabled = true
                                 }
                             }
-
 
                         val stringBuilder = StringBuilder()
                         responseFlow.collect { chunk ->

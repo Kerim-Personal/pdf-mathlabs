@@ -1,4 +1,4 @@
-package com.codenzi.pdf
+package com.codenzi.mathlabs
 
 import android.annotation.SuppressLint
 import android.content.Context

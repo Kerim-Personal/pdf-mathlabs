@@ -1,4 +1,4 @@
-package com.example.pdf
+package com.codenzi.pdf
 
 import android.content.Context
 import android.os.Bundle
@@ -29,7 +29,6 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch // catch operatörünü import et
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.content.res.ColorStateList
@@ -40,12 +39,9 @@ import com.google.android.material.appbar.MaterialToolbar
 import java.io.IOException
 import java.io.FileNotFoundException
 import androidx.appcompat.app.AppCompatDelegate
-import android.util.TypedValue
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.os.Build
-import com.google.android.material.card.MaterialCardView
-import java.util.concurrent.TimeUnit
 
 class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorListener, OnPageErrorListener {
 

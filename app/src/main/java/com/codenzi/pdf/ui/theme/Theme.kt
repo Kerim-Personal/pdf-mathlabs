@@ -1,6 +1,5 @@
-package com.example.pdf.ui.theme
+package com.codenzi.pdf.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

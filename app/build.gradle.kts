@@ -20,11 +20,11 @@ if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
 }
 
 android {
-    namespace = "com.example.pdf"
+    namespace = "com.codenzi.pdf"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.pdf"
+        applicationId = "com.codenzi.mathlabs"
         minSdk = 33
         targetSdk = 35
         versionCode = 1

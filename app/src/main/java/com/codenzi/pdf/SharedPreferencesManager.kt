@@ -1,4 +1,4 @@
-package com.example.pdf
+package com.codenzi.pdf
 
 import android.content.Context
 import android.content.SharedPreferences

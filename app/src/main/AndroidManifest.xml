@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.pdf">
+    package="com.codenzi.pdf">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".PdfApplication"
+        android:name="com.codenzi.pdf.PdfApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,15 +15,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Pdf"
         android:largeHeap="true"> <activity
-        android:name=".NameEntryActivity"
+        android:name="com.codenzi.pdf.NameEntryActivity"
         android:exported="false"
         android:theme="@style/Theme.Pdf" />
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.codenzi.pdf.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf" />
         <activity
-            android:name=".SplashActivity"
+            android:name="com.codenzi.pdf.SplashActivity"
             android:exported="true"
             android:theme="@style/Theme.Pdf.SplashActivity">
             <intent-filter>
@@ -32,15 +32,15 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".LanguageSelectionActivity"
+            android:name="com.codenzi.pdf.LanguageSelectionActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf" />
         <activity
-            android:name=".PdfViewActivity"
+            android:name="com.codenzi.pdf.PdfViewActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf.PdfView" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.codenzi.pdf.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Pdf" />
 

@@ -48,7 +48,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.example.pdf.DrawingView
+    <com.codenzi.pdf.DrawingView
         android:id="@+id/drawingView"
         android:layout_width="0dp"
         android:layout_height="0dp"

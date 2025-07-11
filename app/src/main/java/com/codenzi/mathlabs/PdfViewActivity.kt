@@ -1,23 +1,22 @@
 package com.codenzi.mathlabs
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -31,7 +30,6 @@ import com.github.barteksc.pdfviewer.listener.OnPageErrorListener
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
@@ -50,6 +48,7 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
     private lateinit var fabReadingMode: FloatingActionButton
     private lateinit var eyeComfortOverlay: View
     private lateinit var pdfToolbar: MaterialToolbar
+    private lateinit var notificationTextView: TextView
 
     // DrawingManager bu sınıfın tüm çizim sorumluluğunu alacak
     private lateinit var drawingManager: DrawingManager
@@ -58,11 +57,15 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
     private var fullPdfText: String? = null
     private var currentReadingModeLevel: Int = 0
 
+    private val toastHandler = Handler(Looper.getMainLooper())
+    private var toastRunnable: Runnable? = null
+
+
     private val generativeModel by lazy {
         val apiKey = BuildConfig.GEMINI_API_KEY
         if (apiKey.isEmpty()) {
             Log.e("GeminiAI", "API Anahtarı BuildConfig içerisinde bulunamadı veya geçersiz.")
-            showSnackbar(getString(R.string.ai_assistant_api_key_not_configured))
+            showAnimatedToast(getString(R.string.ai_assistant_api_key_not_configured))
         }
         GenerativeModel(
             modelName = "gemini-1.5-flash",
@@ -89,6 +92,8 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         setContentView(R.layout.activity_pdf_view)
 
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+
         setupToolbar()
         initializeViews()
         setupListeners()
@@ -100,7 +105,7 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         if (pdfAssetName != null) {
             displayPdfFromAssets(pdfAssetName!!)
         } else {
-            showSnackbar(getString(R.string.pdf_not_found))
+            showAnimatedToast(getString(R.string.pdf_not_found))
             finish()
         }
     }
@@ -125,8 +130,8 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         fabAiChat = findViewById(R.id.fab_ai_chat)
         fabReadingMode = findViewById(R.id.fab_reading_mode)
         eyeComfortOverlay = findViewById(R.id.eyeComfortOverlay)
+        notificationTextView = findViewById(R.id.notificationTextView)
 
-        // DrawingManager'ı başlatıyoruz. Artık tüm çizim View'ları ve mantığı onun sorumluluğunda.
         drawingManager = DrawingManager(
             context = this,
             drawingView = findViewById(R.id.drawingView),
@@ -142,16 +147,15 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
             btnSizeSmall = findViewById(R.id.btn_size_small),
             btnSizeMedium = findViewById(R.id.btn_size_medium),
             btnSizeLarge = findViewById(R.id.btn_size_large),
-            showSnackbar = { message -> showSnackbar(message) }
+            showSnackbar = { message -> showAnimatedToast(message) }
         )
     }
 
     private fun setupListeners() {
         fabAiChat.setOnClickListener {
-            // AI mantığı şimdilik burada, sonraki adımda bunu da ayıracağız.
             val apiKey = BuildConfig.GEMINI_API_KEY
             if (apiKey.isEmpty()) {
-                showSnackbar(getString(R.string.ai_assistant_api_key_not_configured))
+                showAnimatedToast(getString(R.string.ai_assistant_api_key_not_configured))
                 return@setOnClickListener
             }
             showAiChatDialog()
@@ -182,7 +186,7 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
                 else -> getString(R.string.pdf_load_failed_with_error, e.localizedMessage ?: "Bilinmeyen hata")
             }
             Log.e("PdfViewError", "PDF yüklenirken hata: $assetName", e)
-            showSnackbar(errorMessage)
+            showAnimatedToast(errorMessage)
             finish()
         }
     }
@@ -196,22 +200,22 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         when (level) {
             0 -> {
                 eyeComfortOverlay.visibility = View.GONE
-                showSnackbar(getString(R.string.reading_mode_off_toast))
+                showAnimatedToast(getString(R.string.reading_mode_off_toast))
             }
             1 -> {
                 eyeComfortOverlay.visibility = View.VISIBLE
                 eyeComfortOverlay.setBackgroundColor("#33FDF6E3".toColorInt())
-                showSnackbar(getString(R.string.reading_mode_low_toast))
+                showAnimatedToast(getString(R.string.reading_mode_low_toast))
             }
             2 -> {
                 eyeComfortOverlay.visibility = View.VISIBLE
                 eyeComfortOverlay.setBackgroundColor("#66FDF6E3".toColorInt())
-                showSnackbar(getString(R.string.reading_mode_medium_toast))
+                showAnimatedToast(getString(R.string.reading_mode_medium_toast))
             }
             3 -> {
                 eyeComfortOverlay.visibility = View.VISIBLE
                 eyeComfortOverlay.setBackgroundColor("#99FDF6E3".toColorInt())
-                showSnackbar(getString(R.string.reading_mode_high_toast))
+                showAnimatedToast(getString(R.string.reading_mode_high_toast))
             }
         }
     }
@@ -277,7 +281,7 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
                     }
                 }
             } else {
-                showSnackbar(getString(R.string.please_enter_a_question))
+                showAnimatedToast(getString(R.string.please_enter_a_question))
             }
         }
         dialog.show()
@@ -309,16 +313,15 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
                         else -> getString(R.string.pdf_text_extraction_failed, e.localizedMessage)
                     }
                     Log.e("PdfTextExtraction", "Metin çıkarılırken hata: $assetName", e)
-                    showSnackbar(errorMessage)
+                    showAnimatedToast(errorMessage)
                 }
             }
         }
     }
 
-    // PDFView Kütüphanesinin Listener Fonksiyonları
     override fun loadComplete(nbPages: Int) {
         progressBar.visibility = View.GONE
-        showSnackbar(getString(R.string.pdf_loaded_toast, nbPages))
+        showAnimatedToast(getString(R.string.pdf_loaded_toast, nbPages))
         pdfAssetName?.let {
             if (fullPdfText == null) {
                 extractTextFromPdf(it)
@@ -328,13 +331,13 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
 
     override fun onError(t: Throwable?) {
         progressBar.visibility = View.GONE
-        showSnackbar(getString(R.string.error_toast, t?.localizedMessage ?: "Bilinmeyen PDF hatası"))
+        showAnimatedToast(getString(R.string.error_toast, t?.localizedMessage ?: "Bilinmeyen PDF hatası"))
         Log.e("PdfView_onError", "PDF Yükleme Hatası", t)
         finish()
     }
 
     override fun onPageError(page: Int, t: Throwable?) {
-        showSnackbar(getString(R.string.page_load_error_toast, page, t?.localizedMessage ?: "Bilinmeyen sayfa hatası"))
+        showAnimatedToast(getString(R.string.page_load_error_toast, page, t?.localizedMessage ?: "Bilinmeyen sayfa hatası"))
         Log.e("PdfView_onPageError", "Sayfa Yükleme Hatası: $page", t)
     }
 
@@ -346,13 +349,39 @@ class PdfViewActivity : AppCompatActivity(), OnLoadCompleteListener, OnErrorList
         return super.onOptionsItemSelected(item)
     }
 
-    private fun showSnackbar(message: String) {
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_SHORT).show()
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    }
+
+    private fun showAnimatedToast(message: String) {
+        // Önceki zamanlayıcıyı iptal et
+        toastRunnable?.let { toastHandler.removeCallbacks(it) }
+
+        notificationTextView.text = message
+
+        // Fade in animasyonu
+        val fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in)
+        notificationTextView.startAnimation(fadeIn)
+        notificationTextView.visibility = View.VISIBLE
+
+        // Fade out için zamanlayıcı
+        toastRunnable = Runnable {
+            val fadeOut = AnimationUtils.loadAnimation(this, R.anim.fade_out)
+            fadeOut.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {}
+                override fun onAnimationEnd(animation: Animation?) {
+                    notificationTextView.visibility = View.GONE
+                }
+                override fun onAnimationRepeat(animation: Animation?) {}
+            })
+            notificationTextView.startAnimation(fadeOut)
+        }
+
+        toastHandler.postDelayed(toastRunnable!!, 2000) // 2 saniye sonra fade out
     }
 }
 
-// Bu enum tanımı DrawingManager'da olduğu için buradan kaldırılabilir veya ortak bir dosyaya taşınabilir.
-// Şimdilik burada bırakıyorum, projenin yapısına göre düzenlenebilir.
 enum class DrawingModeType {
     SMALL, MEDIUM, LARGE
 }

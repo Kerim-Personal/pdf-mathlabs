@@ -33,12 +33,14 @@ class MainActivity : AppCompatActivity() {
     // 'by viewModels()' Kotlin property delegate'i kullanarak Hilt uyumlu ViewModel'i oluşturur.
     private val viewModel: MainViewModel by viewModels()
 
-    // Ayarlar ekranından geri dönüldüğünde temayı yeniden uygulamak için kullanılır.
+    // Ayarlar ekranından geri dönüldüğünde temayı/dili yeniden uygulamak için kullanılır.
     private val settingsLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            recreate() // Activity'yi yeniden oluşturarak tema/dil değişikliğini uygula.
+            // Dil veya tema değişikliği sonrası aktiviteyi yeniden oluştur.
+            // Bu, hem arayüzün (başlık, metin yönü vb.) hem de veri listesinin güncellenmesini sağlar.
+            recreate()
         }
     }
 
@@ -75,11 +77,9 @@ class MainActivity : AppCompatActivity() {
         setupRecyclerView()
         observeViewModel()
 
-        // Veriyi sadece uygulama ilk açıldığında (savedInstanceState null ise) yükle.
-        // Bu, ekran döndürme gibi durumlarda verinin tekrar tekrar yüklenmesini engeller.
-        if (savedInstanceState == null) {
-            viewModel.loadCourses()
-        }
+        // Veriyi yüklerken bu Activity'nin güncel Context'ini kullan.
+        // Bu, recreate() sonrası doğru dil kaynaklarının kullanılmasını sağlar.
+        viewModel.loadCourses(this)
     }
 
     private fun getGreetingMessage(context: android.content.Context): String {

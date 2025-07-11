@@ -1,7 +1,6 @@
 package com.codenzi.mathlabs
 
 import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.Normalizer
 import java.util.Locale
 import javax.inject.Inject
@@ -11,13 +10,9 @@ import javax.inject.Singleton
  * Uygulamanın veri işlemlerini merkezileştiren sınıf.
  * Bu sınıf, Hilt tarafından yönetilen bir Singleton'dır, yani uygulama boyunca tek bir örneği oluşturulur.
  * UI katmanı (ViewModel), verinin nereden veya nasıl geldiğini bilmez, sadece bu sınıftan talep eder.
- *
- * @param context Uygulama Context'i, Hilt tarafından otomatik olarak sağlanır.
  */
 @Singleton
-class CourseRepository @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
+class CourseRepository @Inject constructor() {
 
     /**
      * Verilen bir string'i, Android asset dosya adlandırma kurallarına uygun hale getirir.
@@ -46,7 +41,7 @@ class CourseRepository @Inject constructor(
     /**
      * Belirtilen dosya adının 'assets' klasöründe mevcut olup olmadığını kontrol eder.
      */
-    private fun assetExists(fileName: String): Boolean {
+    private fun assetExists(context: Context, fileName: String): Boolean {
         return try {
             context.assets.open(fileName).use { it.close() }
             true
@@ -60,7 +55,7 @@ class CourseRepository @Inject constructor(
      * Her bir konu için ilgili PDF'in var olup olmadığını kontrol eder ve bu bilgiyi
      * Topic nesnesine ekler.
      */
-    fun getCourses(): List<Course> {
+    fun getCourses(context: Context): List<Course> {
         // Kod tekrarını önlemek için ders ve konu listelerini oluşturan bir yardımcı fonksiyon.
         val createCourseWithTopics: (courseResId: Int, topicResIds: List<Int>) -> Course = { courseResId, topicResIds ->
             val courseTitle = context.getString(courseResId)
@@ -74,7 +69,7 @@ class CourseRepository @Inject constructor(
                 Topic(
                     title = topicTitle,
                     pdfAssetName = pdfAssetName,
-                    hasPdf = assetExists(pdfAssetName)
+                    hasPdf = assetExists(context, pdfAssetName)
                 )
             }
             Course(title = courseTitle, topics = topics)

@@ -20,11 +20,10 @@ object AppModule {
     }
 
     // Hilt'e bir CourseRepository'ye ihtiyaç duyulduğunda nasıl sağlanacağını öğretir.
-    // Hilt, bu fonksiyonu çağırırken gereken 'context' parametresini yukarıdaki
-    // provideContext fonksiyonundan alacaktır.
+    // Bu artık state'e sahip olmadığı için context'e ihtiyaç duymaz.
     @Provides
     @Singleton
-    fun provideCourseRepository(context: Context): CourseRepository {
-        return CourseRepository(context)
+    fun provideCourseRepository(): CourseRepository {
+        return CourseRepository()
     }
 }

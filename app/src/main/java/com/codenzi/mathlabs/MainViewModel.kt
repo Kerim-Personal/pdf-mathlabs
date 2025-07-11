@@ -1,5 +1,6 @@
 package com.codenzi.mathlabs
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -30,11 +31,12 @@ class MainViewModel @Inject constructor(
 
     /**
      * Başlangıçta kursları CourseRepository'den yükler.
-     * Bu fonksiyon genellikle Activity ilk oluşturulduğunda bir kez çağrılır.
+     * Bu fonksiyon, doğru dil kaynaklarına sahip olan güncel Context'i almalıdır.
+     * @param context Güncel dil yapılandırmasına sahip olan Activity Context'i.
      */
-    fun loadCourses() {
-        // Repository'den tüm kursları al.
-        val allCourses = courseRepository.getCourses()
+    fun loadCourses(context: Context) {
+        // Repository'den tüm kursları alırken parametre olarak gelen güncel context'i kullan.
+        val allCourses = courseRepository.getCourses(context)
         // Tam listeyi daha sonra filtreleme için sakla.
         fullCourseList = allCourses
         // Gözlemlenen LiveData'nın değerini güncelle, bu da UI'ın yenilenmesini tetikler.

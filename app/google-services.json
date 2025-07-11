@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068050771887",
+    "project_id": "mathlabs-295da",
+    "storage_bucket": "mathlabs-295da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068050771887:android:6d3b64c34e13a87421495a",
+        "android_client_info": {
+          "package_name": "com.codenzi.mathlabs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTj7i9cbP5Lm-nzB6UtqZG0oJniWorc8U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

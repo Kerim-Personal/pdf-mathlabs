@@ -5,12 +5,14 @@
     android:id="@+id/root_layout_pdf_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface" tools:context=".PdfViewActivity">
+    android:background="?attr/colorSurface"
+    tools:context=".PdfViewActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/pdfToolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back_black"
         android:background="@drawable/toolbar_gradient_background"
         app:titleTextColor="?attr/colorOnPrimary"
         app:layout_constraintTop_toTopOf="parent"
@@ -253,5 +255,23 @@
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
+
+    <TextView
+        android:id="@+id/notificationTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:background="@drawable/toolbar_gradient_background"
+        android:elevation="8dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:textColor="?attr/colorOnPrimary"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="Bu bir bildirim mesajıdır"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

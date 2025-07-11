@@ -1,7 +1,7 @@
 package com.codenzi.mathlabs
 
 import android.content.Context
-import android.content.res.ColorStateList // <--- EKLENEN SATIR
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.View
 import android.widget.ImageButton
@@ -12,21 +12,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 /**
  * PdfViewActivity üzerindeki çizimle ilgili tüm UI ve mantık işlemlerini yöneten sınıf.
  * Bu sınıf, çizim araçlarını, renk ve boyut seçimlerini ve ilgili butonların durumlarını kontrol eder.
- *
- * @param context Uygulama Context'i.
- * @param drawingView Üzerine çizim yapılacak olan özel View.
- * @param fabToggleDrawing Çizim modunu açıp kapatan buton.
- * @param fabEraser Silgi modunu aktive eden buton.
- * @param fabClearAll Tüm çizimleri temizleyen buton.
- * @param drawingOptionsPanel Renk ve boyut seçeneklerini içeren ana panel.
- * @param colorOptions Renk seçimi butonlarını içeren layout.
- * @param sizeOptions Boyut seçimi butonlarını içeren layout.
- * @param btnColorRed Kırmızı renk butonu.
- * @param btnColorBlue Mavi renk butonu.
- * @param btnColorBlack Siyah renk butonu.
- * @param btnSizeSmall Küçük boyut butonu.
- * @param btnSizeMedium Orta boyut butonu.
- * @param btnSizeLarge Büyük boyut butonu.
  */
 class DrawingManager(
     private val context: Context,
@@ -224,4 +209,11 @@ class DrawingManager(
         DrawingModeType.LARGE.ordinal -> 75f
         else -> 50f
     }
+}
+
+/**
+ * Çizim modundaki fırça/silgi boyutlarını temsil eder.
+ */
+enum class DrawingModeType {
+    SMALL, MEDIUM, LARGE
 }

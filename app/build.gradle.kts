@@ -8,6 +8,8 @@ plugins {
     // Hilt için eklenen plugin'ler
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    // Firebase için eklenmesi gereken plugin
+    id("com.google.gms.google-services")
 }
 
 // local.properties dosyasını okuyarak API anahtarını güvenli bir şekilde yükler.
@@ -86,6 +88,14 @@ android {
 }
 
 dependencies {
+    // ---- Firebase Bağımlılıkları ----
+    // Farklı Firebase kütüphanelerinin uyumlu versiyonlarını yönetmek için BOM (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    // Firebase Storage için gerekli kütüphane
+    implementation("com.google.firebase:firebase-storage-ktx")
+
+
+    // ---- Mevcut Bağımlılıklarınız ----
     // Çekirdek Kütüphaneler
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

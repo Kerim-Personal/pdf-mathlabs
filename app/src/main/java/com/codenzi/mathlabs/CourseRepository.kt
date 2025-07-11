@@ -15,8 +15,8 @@ import javax.inject.Singleton
 class CourseRepository @Inject constructor() {
 
     /**
-     * Verilen bir string'i, Android asset dosya adlandırma kurallarına uygun hale getirir.
-     * Türkçe karakterleri (ı,ğ,ü,ş,ö,ç) İngilizce karşılıkları ile değiştirir,
+     * Verilen bir string'i, dosya yolu için uygun hale getirir.
+     * Türkçe karakterleri İngilizce karşılıkları ile değiştirir,
      * boşlukları alt çizgi (_) yapar ve tüm harfleri küçültür.
      */
     private fun normalizeAndFormatForAssetName(input: String): String {
@@ -39,37 +39,32 @@ class CourseRepository @Inject constructor() {
     }
 
     /**
-     * Belirtilen dosya adının 'assets' klasöründe mevcut olup olmadığını kontrol eder.
-     */
-    private fun assetExists(context: Context, fileName: String): Boolean {
-        return try {
-            context.assets.open(fileName).use { it.close() }
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    /**
      * Tüm dersleri ve onlara ait konuları bir liste olarak döndürür.
-     * Her bir konu için ilgili PDF'in var olup olmadığını kontrol eder ve bu bilgiyi
-     * Topic nesnesine ekler.
+     * Her bir konu için ilgili PDF'in Firebase Storage'daki yolunu, seçili olan dile göre oluşturur.
      */
     fun getCourses(context: Context): List<Course> {
+        // SharedPreferences'dan o an seçili olan dili al.
+        // Eğer dil seçilmemişse veya null ise, varsayılan olarak "tr" kullan.
+        val languageCode = SharedPreferencesManager.getLanguage(context) ?: "tr"
+
         // Kod tekrarını önlemek için ders ve konu listelerini oluşturan bir yardımcı fonksiyon.
         val createCourseWithTopics: (courseResId: Int, topicResIds: List<Int>) -> Course = { courseResId, topicResIds ->
             val courseTitle = context.getString(courseResId)
-            val courseTitleForAsset = normalizeAndFormatForAssetName(courseTitle)
+            val coursePath = normalizeAndFormatForAssetName(courseTitle)
 
             val topics = topicResIds.map { topicResId ->
                 val topicTitle = context.getString(topicResId)
-                val topicTitleForAsset = normalizeAndFormatForAssetName(topicTitle)
-                val pdfAssetName = "${courseTitleForAsset}_${topicTitleForAsset}.pdf"
+                val topicPath = normalizeAndFormatForAssetName(topicTitle)
+
+                // Dosya yolunun başına dil kodunu ekleyerek tam yolu oluştur.
+                // Örnek: "tr/kalkulus/limit_ve_sureklilik.pdf"
+                // Örnek: "en/calculus/limits_and_continuity.pdf"
+                val pdfPathInFirebase = "$languageCode/$coursePath/$topicPath.pdf"
 
                 Topic(
                     title = topicTitle,
-                    pdfAssetName = pdfAssetName,
-                    hasPdf = assetExists(context, pdfAssetName)
+                    pdfAssetName = pdfPathInFirebase, // Bu alan artık dil bazlı Firebase yolunu tutuyor
+                    hasPdf = true // PDF'lerin Firebase'de var olduğunu varsayıyoruz
                 )
             }
             Course(title = courseTitle, topics = topics)

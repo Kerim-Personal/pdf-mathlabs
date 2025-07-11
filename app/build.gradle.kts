@@ -5,8 +5,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    // Hilt için eklenen plugin'ler
+    id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
 }
 
+// local.properties dosyasını okuyarak API anahtarını güvenli bir şekilde yükler.
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
@@ -37,16 +41,9 @@ android {
 
         if (geminiApiKeyFromProperties.isEmpty()) {
             println("Warning: GEMINI_API_KEY is empty in local.properties. AI features may not work.")
-            // Anahtar boşsa, BuildConfig'a boş bir string ata
             buildConfigField("String", "GEMINI_API_KEY", "\"\"")
         } else {
             println("Info: GEMINI_API_KEY loaded from local.properties.")
-            // Anahtar doluysa, değeri doğru şekilde escape edilmiş bir string olarak ata.
-            // Java'da bir string sabiti oluşturmak için değeri çift tırnak içine alıyoruz.
-            // Eğer anahtarın kendisi çift tırnak veya ters eğik çizgi gibi özel karakterler içeriyorsa,
-            // bu karakterlerin escape edilmesi gerekir.
-            // Ancak, Google API anahtarları genellikle bu tür karakterleri içermez.
-            // En yaygın senaryo için:
             buildConfigField("String", "GEMINI_API_KEY", "\"${geminiApiKeyFromProperties.replace("\"", "\\\"")}\"")
         }
     }
@@ -65,7 +62,6 @@ android {
                 buildConfigField("String", "GEMINI_API_KEY", "\"\"")
             }
         }
-        debug {} // defaultConfig'ten miras alır
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -77,30 +73,56 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        viewBinding = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.1"
+    }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
 dependencies {
+    // Çekirdek Kütüphaneler
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.core.splashscreen)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.recyclerview)
-    implementation(libs.android.pdf.viewer)
+
+    // Yaşam Döngüsü (Lifecycle) ve ViewModel
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
+    implementation("androidx.activity:activity-ktx:1.9.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
+
+    // UI Kütüphaneleri
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.core.splashscreen)
+
+    // PDF Görüntüleyici ve Metin Çıkarma
+    implementation(libs.android.pdf.viewer)
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
+    // Google AI (Gemini)
+    implementation("com.google.ai.client.generativeai:generativeai:0.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Hilt - Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+
+    // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.activity)
 
-    implementation("com.google.ai.client.generativeai:generativeai:0.6.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
-
+    // Test Kütüphaneleri
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -108,4 +130,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+// Hilt'in doğru çalışması için gerekli olan kapt bloğu.
+kapt {
+    correctErrorTypes = true
 }

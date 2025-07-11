@@ -1,25 +1,26 @@
 package com.codenzi.mathlabs
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import java.text.Normalizer
 
+/**
+ * Kursları ve konularını RecyclerView içinde göstermek için kullanılan Adapter.
+ * Bu Adapter, aynı anda sadece bir kursun genişletilmesine izin verir.
+ */
 class CourseAdapter(
-    private val context: Context,
-    private val courses: MutableList<Course>,
     private val onTopicClickListener: (courseTitle: String, topicTitle: String) -> Unit,
-    private val onPdfClickListener: (courseTitle: String, topicTitle: String, pdfAssetName: String) -> Unit
-) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
+    private val onPdfClickListener: (courseTitle: String, topic: Topic) -> Unit
+) : ListAdapter<Course, CourseAdapter.CourseViewHolder>(CourseDiffCallback()) {
 
     inner class CourseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val courseHeaderLayout: LinearLayout = itemView.findViewById(R.id.courseHeaderLayout)
+        private val courseHeaderLayout: LinearLayout = itemView.findViewById(R.id.courseHeaderLayout)
         val courseTitleTextView: TextView = itemView.findViewById(R.id.textViewCourseTitle)
         val expandIconImageView: ImageView = itemView.findViewById(R.id.imageViewExpandIcon)
         val topicsContainerLayout: LinearLayout = itemView.findViewById(R.id.topicsContainerLayout)
@@ -27,43 +28,65 @@ class CourseAdapter(
         init {
             courseHeaderLayout.setOnClickListener {
                 UIFeedbackHelper.provideFeedback(it)
+                val clickedPosition = bindingAdapterPosition
+                if (clickedPosition == RecyclerView.NO_POSITION) return@setOnClickListener
 
-                val position = bindingAdapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    val clickedCourse = courses[position]
+                // *** YENİ MANTIK BAŞLANGICI ***
+                // O an genişletilmiş olan öğenin pozisyonunu bul.
+                // `currentList`, ListAdapter tarafından sağlanan güncel listedir.
+                val currentlyExpandedPosition = currentList.indexOfFirst { it.isExpanded }
 
-                    if (!clickedCourse.isExpanded) {
-                        val currentlyExpandedPosition = courses.indexOfFirst { course -> course.isExpanded }
-                        if (currentlyExpandedPosition != -1) {
-                            courses[currentlyExpandedPosition].isExpanded = false
-                            notifyItemChanged(currentlyExpandedPosition)
-                        }
-                    }
-
-                    clickedCourse.isExpanded = !clickedCourse.isExpanded
-                    notifyItemChanged(position)
+                // Eğer bir öğe açıksa VE bu öğe şu an tıklanandan farklıysa, önce onu kapat.
+                if (currentlyExpandedPosition != -1 && currentlyExpandedPosition != clickedPosition) {
+                    val previouslyExpandedCourse = getItem(currentlyExpandedPosition)
+                    previouslyExpandedCourse.isExpanded = false
+                    // Sadece kapanacak olan öğeyi güncelle, tüm listeyi değil.
+                    notifyItemChanged(currentlyExpandedPosition)
                 }
+
+                // Tıklanan öğenin durumunu tersine çevir (açıksa kapat, kapalıysa aç).
+                val clickedCourse = getItem(clickedPosition)
+                clickedCourse.isExpanded = !clickedCourse.isExpanded
+                // Sadece tıklanan öğeyi güncelle.
+                notifyItemChanged(clickedPosition)
+                // *** YENİ MANTIK SONU ***
             }
         }
-    }
 
-    private fun normalizeAndFormatForAssetName(input: String): String {
-        var normalized = Normalizer.normalize(input, Normalizer.Form.NFD)
-        normalized = normalized.replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
-        normalized = normalized
-            .replace("ı", "i")
-            .replace("İ", "I")
-            .replace("ğ", "g")
-            .replace("Ğ", "G")
-            .replace("ü", "u")
-            .replace("Ü", "U")
-            .replace("ş", "s")
-            .replace("Ş", "S")
-            .replace("ö", "o")
-            .replace("Ö", "O")
-            .replace("ç", "c")
-            .replace("Ç", "C")
-        return normalized.lowercase().replace(" ", "_")
+        fun bind(course: Course) {
+            courseTitleTextView.text = course.title
+            topicsContainerLayout.removeAllViews()
+
+            if (course.isExpanded) {
+                expandIconImageView.setImageResource(R.drawable.ic_expand_less)
+                topicsContainerLayout.visibility = View.VISIBLE
+
+                course.topics.forEach { topic ->
+                    val topicView = LayoutInflater.from(itemView.context)
+                        .inflate(R.layout.item_topic, topicsContainerLayout, false)
+
+                    val topicTextView: TextView = topicView.findViewById(R.id.textViewTopicTitle)
+                    val pdfIconImageView: ImageView = topicView.findViewById(R.id.imageViewPdfIcon)
+                    topicTextView.text = topic.title
+
+                    if (topic.hasPdf) {
+                        pdfIconImageView.visibility = View.VISIBLE
+                        topicView.setOnClickListener {
+                            onPdfClickListener(course.title, topic)
+                        }
+                    } else {
+                        pdfIconImageView.visibility = View.GONE
+                        topicView.setOnClickListener {
+                            onTopicClickListener(course.title, topic.title)
+                        }
+                    }
+                    topicsContainerLayout.addView(topicView)
+                }
+            } else {
+                expandIconImageView.setImageResource(R.drawable.ic_expand_more)
+                topicsContainerLayout.visibility = View.GONE
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CourseViewHolder {
@@ -73,65 +96,16 @@ class CourseAdapter(
     }
 
     override fun onBindViewHolder(holder: CourseViewHolder, position: Int) {
-        val course = courses[position]
-        holder.courseTitleTextView.text = course.title
+        holder.bind(getItem(position))
+    }
+}
 
-        if (course.isExpanded) {
-            holder.expandIconImageView.setImageResource(R.drawable.ic_expand_less)
-            holder.topicsContainerLayout.visibility = View.VISIBLE
-            holder.topicsContainerLayout.removeAllViews()
-
-            course.topics.forEach { topicTitle ->
-                val topicView = LayoutInflater.from(holder.itemView.context)
-                    .inflate(R.layout.item_topic, holder.topicsContainerLayout, false)
-                val topicTextView: TextView = topicView.findViewById(R.id.textViewTopicTitle)
-                val pdfIconImageView: ImageView = topicView.findViewById(R.id.imageViewPdfIcon)
-                topicTextView.text = topicTitle
-
-                val courseTitleForAsset = normalizeAndFormatForAssetName(course.title)
-                val topicTitleForAsset = normalizeAndFormatForAssetName(topicTitle)
-                val pdfAssetName = "${courseTitleForAsset}_${topicTitleForAsset}.pdf"
-
-                val fileActuallyExists = assetExists(pdfAssetName)
-                android.util.Log.d("PdfAssetCheck", "Ders: '${course.title}', Konu: '${topicTitle}' -> Aranan PDF: '$pdfAssetName', Bulundu mu?: $fileActuallyExists")
-
-                if (fileActuallyExists) {
-                    pdfIconImageView.visibility = View.VISIBLE
-                    topicView.setOnClickListener {
-                        UIFeedbackHelper.provideFeedback(it)
-                        onPdfClickListener(course.title, topicTitle, pdfAssetName)
-                    }
-                } else {
-                    pdfIconImageView.visibility = View.GONE
-                    topicView.setOnClickListener {
-                        UIFeedbackHelper.provideFeedback(it)
-                        onTopicClickListener(course.title, topicTitle)
-                    }
-                }
-                holder.topicsContainerLayout.addView(topicView)
-            }
-        } else {
-            holder.expandIconImageView.setImageResource(R.drawable.ic_expand_more)
-            holder.topicsContainerLayout.visibility = View.GONE
-        }
+class CourseDiffCallback : DiffUtil.ItemCallback<Course>() {
+    override fun areItemsTheSame(oldItem: Course, newItem: Course): Boolean {
+        return oldItem.title == newItem.title
     }
 
-    override fun getItemCount(): Int = courses.size
-
-    // YENİ EKLENEN FONKSİYON: Arama sonuçlarına göre listeyi günceller.
-    @SuppressLint("NotifyDataSetChanged")
-    fun filterList(filteredList: List<Course>) {
-        courses.clear()
-        courses.addAll(filteredList)
-        notifyDataSetChanged()
-    }
-
-    private fun assetExists(fileName: String): Boolean {
-        return try {
-            context.assets.open(fileName).use { it.close() }
-            true
-        } catch (e: Exception) {
-            false
-        }
+    override fun areContentsTheSame(oldItem: Course, newItem: Course): Boolean {
+        return oldItem == newItem
     }
 }

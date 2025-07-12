@@ -196,7 +196,7 @@
     <string name="ai_chat_question_hint">PDF hakkında bir soru sorun...</string>
     <string name="ai_chat_thinking">Düşünüyorum...</string>
     <string name="ai_chat_error">Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.</string>
-    <string name="ai_chat_info">Cevaplar yapay zeka tarafından genel bilginize göre üretilmektedir.</string> <string name="send_question_desc">Soruyu gönder</string>
+    <string name="ai_chat_info">Cevaplar yapay zeka tarafından kaynak içeriğine göre üretilmektedir.</string> <string name="send_question_desc">Soruyu gönder</string>
 
     <string name="reading_mode_description">Okuma Modu</string>
     <string name="toggle_drawing_description">Çizimi Aç/Kapat</string>
@@ -238,4 +238,6 @@
     <string name="theme_color_unknown">Bilinmeyen Renk</string>
     <string name="ai_chat_error_with_details">Üzgünüm, bir hata oluştu: %1$s</string>
     <string name="ai_assistant_rate_limit">AI Asistanını tekrar kullanmak için %1$d saat %2$d dakika bekleyiniz.</string>
+
+    <string name="ai_info_not_found">Sorunuzla ilgili spesifik bir bilgi PDF\'te bulunamadı. Lütfen daha farklı kelimelerle veya genel bir konu başlığı ile tekrar deneyin.</string>
 </resources>

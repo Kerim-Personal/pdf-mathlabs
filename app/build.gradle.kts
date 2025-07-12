@@ -5,14 +5,11 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    // Hilt için eklenen plugin'ler
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
-    // Firebase için eklenmesi gereken plugin
     id("com.google.gms.google-services")
 }
 
-// local.properties dosyasını okuyarak API anahtarını güvenli bir şekilde yükler.
 val localProperties = Properties()
 val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists() && localPropertiesFile.isFile) {
@@ -38,7 +35,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // API anahtarını BuildConfig'a ekleme
         val geminiApiKeyFromProperties = localProperties.getProperty("GEMINI_API_KEY")?.trim() ?: ""
 
         if (geminiApiKeyFromProperties.isEmpty()) {
@@ -89,41 +85,40 @@ android {
 
 dependencies {
     // ---- Firebase Bağımlılıkları ----
-    // Farklı Firebase kütüphanelerinin uyumlu versiyonlarını yönetmek için BOM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    // Firebase Storage için gerekli kütüphane
     implementation("com.google.firebase:firebase-storage-ktx")
 
+    // ---- Ağ ve Önbellekleme ----
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    // ---- Mevcut Bağımlılıklarınız ----
-    // Çekirdek Kütüphaneler
+    // ---- Çekirdek Kütüphaneler ----
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
 
-    // Yaşam Döngüsü (Lifecycle) ve ViewModel
+    // ---- Yaşam Döngüsü (Lifecycle) ve ViewModel ----
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("androidx.activity:activity-ktx:1.9.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.4")
 
-    // UI Kütüphaneleri
+    // ---- UI Kütüphaneleri ----
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.core.splashscreen)
 
-    // PDF Görüntüleyici ve Metin Çıkarma
+    // ---- PDF Görüntüleyici ve Metin Çıkarma ----
     implementation(libs.android.pdf.viewer)
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 
-    // Google AI (Gemini)
+    // ---- Google AI (Gemini) ----
     implementation("com.google.ai.client.generativeai:generativeai:0.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    // Hilt - Dependency Injection
+    // ---- Hilt - Dependency Injection ----
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
-    // Jetpack Compose
+    // ---- Jetpack Compose ----
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -132,7 +127,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.activity)
 
-    // Test Kütüphaneleri
+    // ---- Test Kütüphaneleri ----
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -142,7 +137,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 }
 
-// Hilt'in doğru çalışması için gerekli olan kapt bloğu.
 kapt {
     correctErrorTypes = true
 }

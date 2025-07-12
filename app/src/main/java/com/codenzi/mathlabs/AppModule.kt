@@ -7,6 +7,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Cache
+import okhttp3.OkHttpClient
+import java.io.File
 import javax.inject.Singleton
 
 @Module
@@ -19,11 +22,23 @@ object AppModule {
         return context
     }
 
-    // Hilt'e bir CourseRepository'ye ihtiyaç duyulduğunda nasıl sağlanacağını öğretir.
-    // Bu artık state'e sahip olmadığı için context'e ihtiyaç duymaz.
     @Provides
     @Singleton
     fun provideCourseRepository(): CourseRepository {
         return CourseRepository()
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
+        // Önbellek için bir klasör ve boyut belirle (100MB)
+        val cacheSize = 100L * 1024 * 1024 // 100 MB
+        val cacheDirectory = File(context.cacheDir, "http-cache")
+        val cache = Cache(cacheDirectory, cacheSize)
+
+        // OkHttpClient'ı oluştur ve önbelleği ata
+        return OkHttpClient.Builder()
+            .cache(cache)
+            .build()
     }
 }
